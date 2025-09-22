@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Método Gráfico — Investigación Operativa</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+    crossorigin="anonymous">
+  <style>
+    /* Estilos personalizados */
+    body {
+      background-color: #f4f6f9;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(90deg, #007bff, #00bcd4);
+      color: white;
+      padding: 10px;
+    }
+
+    header h2 {
+      font-weight: bold;
+    }
+
+    .navbar {
+      background-color: #004d99 !important;
+    }
+
+    .navbar .nav-link,
+    .navbar .navbar-brand {
+      color: white !important;
+    }
+
+    .navbar .nav-link:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+    }
+
+    .box {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+    }
+
+    footer {
+      background: #004d99;
+      color: white;
+      padding: 10px;
+    }
+
+    /* Temas dinámicos */
+    body.tema-oscuro {
+      background: #222;
+      color: white;
+    }
+
+    body.tema-oscuro .box {
+      background: #333;
+      border: 1px solid #555;
+    }
+
+    body.tema-oscuro .navbar,
+    body.tema-oscuro footer {
+      background: black !important;
+    }
+
+    body.tema-oscuro header {
+      background: linear-gradient(90deg, #444, #111);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="metodo text-center">
+      <h2>MÉTODO GRÁFICO (2 VARIABLES)</h2>
+    </div>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">INICIO</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMenu">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link active" href="#">Ejercicios</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Enlace</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Métodos</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Método gráfico</a></li>
+                <li><a class="dropdown-item" href="#">Método simplex</a></li>
+                <li><a class="dropdown-item" href="#">Método dual simplex</a></li>
+              </ul>
+            </li>
+          </ul>
+
+          <!-- Barra de colores -->
+          <div class="dropdown">
+            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              🎨 Colores
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" onclick="cambiarTema('claro')">Claro</a></li>
+              <li><a class="dropdown-item" href="#" onclick="cambiarTema('oscuro')">Oscuro</a></li>
+              <li><a class="dropdown-item" href="#" onclick="cambiarTema('personalizado')">Personalizado</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container-fluid">
+    <div class="row">
+      <aside class="col-md-4 controls">
+        <h2>Entrada de datos</h2>
+
+        <section class="box">
+          <label>Función objetivo</label>
+          <div class="row mb-2">
+            <select id="optType">
+              <option value="max">Maximizar</option>
+              <option value="min">Minimizar</option>
+            </select>
+            <input id="ax" type="number" step="any" value="3" title="Coeficiente a (x)" />
+            <span>x +</span>
+            <input id="by" type="number" step="any" value="2" title="Coeficiente b (y)" />
+            <span>y</span>
+          </div>
+          <div class="note">Z = a·x + b·y</div>
+
+          <!-- NUEVO: campo editable para la función -->
+          <div class="mt-2">
+            <label for="funcionTexto">Editar función directamente:</label>
+            <input id="funcionTexto" type="text" class="form-control" value="Z = 3x + 2y" />
+          </div>
+        </section>
+
+        <section class="box">
+          <label>Restricciones</label>
+          <div id="constraintsList"></div>
+          <div class="row mt-2">
+            <button id="addConstraint" class="btn btn-outline-primary btn-sm">Añadir restricción</button>
+            <button id="clearConstraints" class="btn btn-outline-danger btn-sm">Limpiar</button>
+          </div>
+        </section>
+
+        <section class="box">
+          <label>Acciones</label>
+          <div class="row">
+            <button id="computeBtn" class="btn btn-primary">Mostrar gráfico</button>
+            <button id="clearBtn" class="btn btn-secondary">Limpiar gráfico</button>
+          </div>
+          <div class="row mt-2">
+            <button id="exportCSV" class="btn btn-success">Exportar CSV</button>
+          </div>
+        </section>
+
+        <section class="box">
+          <label>Opciones</label>
+          <div class="row">
+            <label><input id="nonNeg" type="checkbox" checked /> x,y ≥ 0</label>
+          </div>
+        </section>
+      </aside>
+
+      <section class="col-md-8 viewer">
+        <div class="svgWrap" id="svgWrap">
+          <!-- Aquí se genera el gráfico -->
+        </div>
+
+        <div class="results box">
+          <h3>Puntos (vértices) y evaluación</h3>
+          <table id="pointsTable" class="table table-striped">
+            <thead>
+              <tr>
+                <th>x</th>
+                <th>y</th>
+                <th>Z</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer text-center">
+    <small>Creado por <strong>Kevin Moscoso Paris</strong> y <strong>Abel Rodrigo Padilla</strong> — Proyecto de
+      Investigación Operativa</small>
+  </footer>
+
+  <script>
+    // ---- Cambio de tema ----
+    function cambiarTema(tema) {
+      document.body.classList.remove("tema-oscuro", "tema-personalizado");
+      document.body.style.background = "";
+      document.body.style.color = "";
+      if (tema === "oscuro") {
+        document.body.classList.add("tema-oscuro");
+      } else if (tema === "personalizado") {
+        document.body.style.background = "#ffeaa7";
+        document.body.style.color = "#2d3436";
+      } else {
+        document.body.style.background = "#f4f6f9";
+        document.body.style.color = "#222";
+      }
+    }
+
+    // ---- Manejo de restricciones numeradas ----
+    let contadorRestricciones = 0;
+    const constraintsList = document.getElementById("constraintsList");
+    const addBtn = document.getElementById("addConstraint");
+    const clearBtn = document.getElementById("clearConstraints");
+
+    addBtn.addEventListener("click", () => {
+      contadorRestricciones++;
+      const div = document.createElement("div");
+      div.className = "constraint row mb-2";
+      div.innerHTML = `
+        <label class="form-label"><strong>Restricción ${contadorRestricciones}:</strong></label>
+        <div class="col-12">
+          <input type="number" step="any" value="1" /> x +
+          <input type="number" step="any" value="1" /> y
+          <select>
+            <option value="<=">≤</option>
+            <option value=">=">≥</option>
+            <option value="=">=</option>
+          </select>
+          <input type="number" step="any" value="10" />
+        </div>
+      `;
+      constraintsList.appendChild(div);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      constraintsList.innerHTML = "";
+      contadorRestricciones = 0;
+    });
+  </script>
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
